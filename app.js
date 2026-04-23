@@ -173,62 +173,115 @@ function goToLogin() {
 // ============================================================
 // معالجة إرسال نموذج الطلب
 // ============================================================
-async function handleOrderSubmit(e) {
+async function saveOrder(e) {
   e.preventDefault();
 
   const submitBtn = e.target.querySelector('button[type="submit"]');
-  const msgEl     = document.getElementById('order-result-msg');
+  // التصحيح: استخدام الـ ID الصحيح لرسالة النتيجة كما هو في HTML
+  const msgEl = document.getElementById('order-result-msg');
 
-  // تحقق من الحقول الإلزامية
-  const name  = document.getElementById('customer-name')?.value.trim()  || '';
-  const email = document.getElementById('customer-email')?.value.trim() || '';
-  if (!name)  { showMsg(msgEl, '❌ يرجى إدخال الاسم الكامل', 'error'); return; }
-  if (!email) { showMsg(msgEl, '❌ يرجى إدخال البريد الإلكتروني', 'error'); return; }
+  // تنظيف الرسائل السابقة
+  if (msgEl) msgEl.textContent = '';
 
-  // حالة الإرسال
-  submitBtn.disabled    = true;
-  submitBtn.textContent = '⏳ جاري الإرسال...';
+  try {
+    // التصحيح: جلب البيانات باستخدام الـ IDs الصحيحة الموجودة في HTML
+    const name  = document.getElementById('customer-name')?.value.trim()  || '';
+    const email = document.getElementById('customer-email')?.value.trim() || '';
+    const phone = document.getElementById('customer-phone')?.value.trim() || null;
+    const notes = document.getElementById('customer-notes')?.value.trim() || null;
 
-  // رفع الصورة إن وُجدت
-  const imageUrl = await uploadDesignImage();
+    if (!name)  { showMsg(msgEl, '❌ يرجى إدخال الاسم الكامل', 'error'); return; }
+    if (!email) { showMsg(msgEl, '❌ يرجى إدخال البريد الإلكتروني', 'error'); return; }
 
-  // بناء payload الأساسي (بدون عمود الصورة مبدئياً)
-  const baseData = {
-    customer_name: name,
-    email:         email,
-    phone:         document.getElementById('customer-phone')?.value.trim() || null,
-    service_name:  selectedService?.service_name || '',
-    price:         selectedService?.price        || 0,
-    notes:         document.getElementById('customer-notes')?.value.trim() || null,
-    status:        'new'
-  };
+    // التصحيح: استخدام الـ ID الصحيح لخانة رفع الصورة كما هو في HTML
+    const imageInput = document.getElementById('design-image');
+    const file = imageInput?.files?.[0];
 
-  // أضف رابط الصورة فقط إذا تم الرفع بنجاح
-  const orderData = imageUrl ? { ...baseData, design_image_url: imageUrl } : baseData;
+    // 1. التحقق الإجباري من وجود الصورة
+    if (!file) {
+      showMsg(msgEl, '❌ يرجى إرفاق صورة مع الطلب', 'error');
+      return;
+    }
 
-  // المحاولة الأولى: إرسال الطلب
-  let { error } = await sb.from('orders').insert([orderData]);
+    // 2. التحقق من حجم الصورة (2 ميجابايت كحد أقصى)
+    if (file.size > 2 * 1024 * 1024) {
+      showMsg(msgEl, '❌ حجم الصورة يجب أن لا يتجاوز 2MB', 'error');
+      return;
+    }
 
-  // إذا فشل بسبب عمود design_image_url غير موجود — أعد المحاولة بدونه
-  if (error && error.message?.includes('design_image_url')) {
-    console.warn('[Order] عمود design_image_url غير موجود — أضفه بـ SQL. الإرسال بدونه...');
-    const retry = await sb.from('orders').insert([baseData]);
-    error = retry.error;
-  }
+    // تعطيل الزر لتفادي الإرسال المتكرر
+    if (submitBtn) {
+      submitBtn.disabled    = true;
+      submitBtn.textContent = '⏳ جاري رفع الصورة...';
+    }
 
-  if (error) {
-    // عرض الخطأ الحقيقي لتسهيل التشخيص
-    console.error('[Order] خطأ:', error.code, error.message, error.details);
-    showMsg(msgEl, '❌ ' + (error.message || 'حدث خطأ غير متوقع'), 'error');
-    submitBtn.disabled    = false;
-    submitBtn.textContent = 'إرسال الطلب 🚀';
-  } else {
-    showMsg(msgEl, '✅ تم إرسال طلبك بنجاح! سنتواصل معك خلال 24 ساعة.', 'success');
-    e.target.reset();
-    clearImage({ stopPropagation: () => {} });
-    setTimeout(closeOrderModal, 2500);
-    submitBtn.disabled    = false;
-    submitBtn.textContent = 'إرسال الطلب 🚀';
+    // 3. رفع الصورة إلى Supabase Storage
+    const ext = file.name.split('.').pop();
+    const fileName = `order_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+
+    const { error: uploadError } = await sb.storage
+      .from('order-images')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+    // إذا فشل الرفع، يتم إيقاف العملية بالكامل ولا يتم حفظ الطلب
+    if (uploadError) {
+      console.error('[Upload] فشل رفع الصورة:', uploadError.message);
+      showMsg(msgEl, '❌ فشل رفع الصورة، يرجى المحاولة مرة أخرى', 'error');
+      return;
+    }
+
+    // 4. الحصول على الرابط العام للصورة بعد نجاح الرفع
+    const { data: urlData } = sb.storage.from('order-images').getPublicUrl(fileName);
+    const uploadedImageUrl = urlData?.publicUrl;
+
+    if (submitBtn) submitBtn.textContent = '⏳ جاري حفظ الطلب...';
+
+    // تحديد اسم الخدمة والسعر بأمان
+    const serviceName = (typeof selectedService !== 'undefined' && selectedService?.service_name) ? selectedService.service_name : 'خدمة غير محددة';
+    const servicePrice = (typeof selectedService !== 'undefined' && selectedService?.price) ? selectedService.price : 0;
+
+    // 5. البيانات التي سيتم إرسالها إلى جدول orders مع حفظ الرابط
+    const orderData = {
+      customer_name: name,
+      email:         email,
+      phone:         phone,
+      service_name:  serviceName,
+      price:         servicePrice,
+      notes:         notes,
+      status:        'new',
+      image_url:     uploadedImageUrl // حقل إجباري
+    };
+
+    const { error: insertError } = await sb.from('orders').insert([orderData]);
+
+    if (insertError) {
+      console.error('[Order] خطأ:', insertError.message);
+      showMsg(msgEl, '❌ ' + (insertError.message || 'حدث خطأ أثناء حفظ الطلب'), 'error');
+    } else {
+      // 6. إظهار رسالة النجاح في حالة اكتمال العمليتين (الرفع + الحفظ)
+      showMsg(msgEl, '✅ تم إرسال الطلب مع الصورة بنجاح! سنتواصل معك قريباً.', 'success');
+      e.target.reset();
+      
+      // إعادة واجهة رفع الصورة إلى حالتها الافتراضية
+      if (typeof clearImage === 'function') {
+        const fakeEvent = { stopPropagation: () => {} };
+        clearImage(fakeEvent);
+      }
+
+      setTimeout(() => {
+        if (typeof closeOrderModal === 'function') closeOrderModal();
+      }, 2500);
+    }
+
+  } catch (error) {
+    // 7. التقاط أي خطأ غير متوقع لتجنب توقف الدالة كلياً
+    console.error('[saveOrder] Unexpected Error:', error);
+    showMsg(msgEl, '❌ حدث خطأ غير متوقع، يرجى المحاولة لاحقاً', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled    = false;
+      submitBtn.textContent = 'إرسال الطلب 🚀';
+    }
   }
 }
 
@@ -316,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ربط نموذج الطلب
   const orderForm = document.getElementById('order-form');
   if (orderForm) {
-    orderForm.addEventListener('submit', handleOrderSubmit);
+    orderForm.addEventListener('submit', saveOrder);
   } else {
     console.warn('order-form غير موجود في الصفحة');
   }

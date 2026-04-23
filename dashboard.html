@@ -117,7 +117,7 @@ select.status-select{background:rgba(255,255,255,.05);border:1px solid var(--br)
       <button class="filter-btn" onclick="filterOrders('done',this)">مكتمل</button>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الجوال</th><th>الخدمة</th><th>السعر</th><th>صورة</th><th>الحالة</th><th id="th-completed-by" style="display:none;">بواسطة</th><th>ملاحظات</th><th>التاريخ</th></tr></thead>
+      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الجوال</th><th>الخدمة</th><th>السعر</th><th>الصورة</th><th>الحالة</th><th id="th-completed-by" style="display:none;">بواسطة</th><th>ملاحظات</th><th>التاريخ</th></tr></thead>
       <tbody id="orders-body"></tbody>
     </table></div>
   </div>
@@ -350,7 +350,13 @@ function renderOrders() {
     <td dir="ltr">${o.phone||'—'}</td>
     <td>${o.service_name||'—'}</td>
     <td style="color:#4ade80;font-weight:700">$${o.price||0}</td>
-    <td>${o.design_image_url?`<a href="${o.design_image_url}" target="_blank" style="color:var(--pa);font-size:.78rem">عرض 🖼</a>`:'—'}</td>
+    <td style="text-align:center;">
+      ${o.image_url 
+        ? `<a href="${o.image_url}" target="_blank" style="display:inline-block; border-radius:8px; overflow:hidden; border:1px solid rgba(139,92,246,0.3); transition:all 0.3s; box-shadow:0 2px 8px rgba(0,0,0,0.2);" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='var(--pa)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(139,92,246,0.3)';">
+             <img src="${o.image_url}" alt="صورة الطلب" style="display:block; width:70px; height:70px; object-fit:cover;">
+           </a>`
+        : `<span style="color:#64748b;font-size:.75rem;">لا توجد صورة</span>`}
+    </td>
     <td><select class="status-select" onchange="updateStatus('${o.id}',this.value)">
       <option value="new" ${o.status==='new'?'selected':''}>🔵 جديد</option>
       <option value="in_progress" ${o.status==='in_progress'?'selected':''}>🟡 قيد التنفيذ</option>
