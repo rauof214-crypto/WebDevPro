@@ -63,6 +63,13 @@ select.status-select{background:rgba(255,255,255,.05);border:1px solid var(--br)
 .ferr{color:#f87171;font-size:.8rem;margin-top:.5rem;}
 .tab-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
 .tab-header h3{font-size:1rem;font-weight:600;}
+/* إحصائيات الإكمال */
+.admin-stats-card { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(10px); display: none; }
+.admin-stats-card h3 { color: var(--pa); font-size: 1.05rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.admin-stats-table { width: 100%; border-collapse: collapse; }
+.admin-stats-table th, .admin-stats-table td { padding: 0.75rem; text-align: right; border-bottom: 1px solid rgba(139,92,246,0.1); }
+.admin-stats-table th { color: var(--txt2); font-size: 0.8rem; }
+.admin-stats-table td { font-weight: 600; }
 @media(max-width:640px){.sidebar{display:none;}.layout{display:block;}.main{padding:1rem;}.form-row{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -91,6 +98,18 @@ select.status-select{background:rgba(255,255,255,.05);border:1px solid var(--br)
 
   <!-- ORDERS TAB -->
   <div class="tabs active" id="tab-orders">
+    
+    <!-- قسم إحصائيات الإكمال للمدير -->
+    <div class="admin-stats-card" id="admin-stats-section">
+      <h3><i class="fa fa-chart-pie"></i> إحصائيات إكمال الطلبات</h3>
+      <div class="tbl-wrap">
+        <table class="admin-stats-table">
+          <thead><tr><th>الموظف / الإيميل</th><th>الطلبات المكتملة</th></tr></thead>
+          <tbody id="admin-stats-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="filters">
       <button class="filter-btn active" onclick="filterOrders('all',this)">الكل</button>
       <button class="filter-btn" onclick="filterOrders('new',this)">جديد</button>
@@ -98,7 +117,7 @@ select.status-select{background:rgba(255,255,255,.05);border:1px solid var(--br)
       <button class="filter-btn" onclick="filterOrders('done',this)">مكتمل</button>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الجوال</th><th>الخدمة</th><th>السعر</th><th>صورة</th><th>الحالة</th><th>ملاحظات</th><th>التاريخ</th></tr></thead>
+      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الجوال</th><th>الخدمة</th><th>السعر</th><th>صورة</th><th>الحالة</th><th id="th-completed-by" style="display:none;">بواسطة</th><th>ملاحظات</th><th>التاريخ</th></tr></thead>
       <tbody id="orders-body"></tbody>
     </table></div>
   </div>
@@ -253,10 +272,15 @@ async function initAuth() {
       document.getElementById('nav-services').style.display='none';
       document.getElementById('nav-portfolio').style.display='none';
       document.getElementById('nav-reviews').style.display='none';
+    } else {
+      document.getElementById('admin-stats-section').style.display='block';
+      document.getElementById('th-completed-by').style.display='table-cell';
     }
   } else {
     empRole='admin';
     document.getElementById('emp-name-badge').textContent = email;
+    document.getElementById('admin-stats-section').style.display='block';
+    document.getElementById('th-completed-by').style.display='table-cell';
   }
   loadOrders();
 }
@@ -288,8 +312,28 @@ async function loadOrders() {
   document.getElementById('cnt-prog').textContent  = allOrders.filter(o=>o.status==='in_progress').length;
   document.getElementById('cnt-done').textContent  = allOrders.filter(o=>o.status==='done').length;
   document.getElementById('cnt-total').textContent = allOrders.length;
+  
+  if (empRole === 'admin') renderAdminStats();
   renderOrders();
 }
+
+function renderAdminStats() {
+  const completed = allOrders.filter(o => o.status === 'done' && o.completed_by);
+  const counts = {};
+  completed.forEach(o => counts[o.completed_by] = (counts[o.completed_by] || 0) + 1);
+  
+  const arr = Object.keys(counts).map(email => ({ email, count: counts[email] }));
+  arr.sort((a, b) => b.count - a.count); // ترتيب تنازلي
+  
+  const tb = document.getElementById('admin-stats-body');
+  if(!arr.length) { tb.innerHTML='<tr><td colspan="2" style="text-align:center;color:#64748b;">لا توجد بيانات</td></tr>'; return; }
+  
+  tb.innerHTML = arr.map(s => `<tr>
+    <td style="color:var(--txt);">${s.email}</td>
+    <td style="color:var(--pa); font-size:1.1rem;">${s.count}</td>
+  </tr>`).join('');
+}
+
 function filterOrders(status,btn) {
   currentFilter=status;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -298,7 +342,7 @@ function filterOrders(status,btn) {
 function renderOrders() {
   const list = currentFilter==='all'?allOrders:allOrders.filter(o=>o.status===currentFilter);
   const tb = document.getElementById('orders-body');
-  if(!list.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:#64748b;padding:2rem">لا توجد طلبات</td></tr>';return;}
+  if(!list.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:#64748b;padding:2rem">لا توجد طلبات</td></tr>';return;}
   tb.innerHTML = list.map((o,i)=>`<tr>
     <td style="color:#64748b">${i+1}</td>
     <td><strong>${o.customer_name||'—'}</strong></td>
@@ -312,12 +356,21 @@ function renderOrders() {
       <option value="in_progress" ${o.status==='in_progress'?'selected':''}>🟡 قيد التنفيذ</option>
       <option value="done" ${o.status==='done'?'selected':''}>🟢 مكتمل</option>
     </select></td>
+    ${empRole === 'admin' ? `<td style="color:var(--pa);font-size:.75rem;">${o.completed_by||'—'}</td>` : ''}
     <td style="max-width:140px;color:#94a3b8;font-size:.78rem">${o.notes||'—'}</td>
     <td style="color:#64748b;font-size:.76rem;white-space:nowrap">${new Date(o.created_at).toLocaleDateString('ar-SA')}</td>
   </tr>`).join('');
 }
 async function updateStatus(id,status) {
-  await sb.from('orders').update({status}).eq('id',id);
+  const payload = { status };
+  
+  // حفظ الإيميل إذا تم تحويل الحالة إلى مكتمل
+  if (status === 'done') {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user?.email) payload.completed_by = user.email;
+  }
+  
+  await sb.from('orders').update(payload).eq('id',id);
   loadOrders();
 }
 
