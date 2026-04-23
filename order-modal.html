@@ -1,0 +1,67 @@
+<!-- ORDER MODAL — ضعه مباشرة بعد <body> في index.html -->
+
+<!-- Overlay -->
+<div id="order-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;opacity:0;transition:opacity .3s;align-items:center;justify-content:center;"></div>
+
+<!-- Modal Box -->
+<div id="order-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-58%);z-index:301;background:rgba(10,4,24,.97);border:1px solid rgba(139,92,246,.25);border-radius:22px;padding:2rem;width:92%;max-width:480px;opacity:0;transition:opacity .3s,transform .3s;">
+
+  <!-- Close -->
+  <button onclick="closeOrderModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer;">✕</button>
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:1.5rem;">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(168,85,247,.1));border:1px solid rgba(139,92,246,.3);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto .75rem;">📋</div>
+    <h2 style="font-size:1.3rem;font-weight:700;color:#f8fafc;">اطلب الخدمة</h2>
+    <p id="order-service-label" style="color:#a855f7;font-weight:600;font-size:.9rem;margin-top:.25rem;"></p>
+  </div>
+
+  <!-- Form -->
+  <form id="order-form">
+    <!-- Name -->
+    <div style="position:relative;margin-bottom:.85rem;">
+      <span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.85rem;">👤</span>
+      <input id="order-name" type="text" placeholder="الاسم الكامل" required
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem 2.2rem .7rem 1rem;color:#f8fafc;font-size:.875rem;outline:none;font-family:inherit;transition:border .3s;"
+        onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+    </div>
+    <!-- Email -->
+    <div style="position:relative;margin-bottom:.85rem;">
+      <span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.85rem;">✉️</span>
+      <input id="order-email" type="email" placeholder="البريد الإلكتروني" required
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem 2.2rem .7rem 1rem;color:#f8fafc;font-size:.875rem;outline:none;font-family:inherit;transition:border .3s;"
+        onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+    </div>
+    <!-- Phone -->
+    <div style="position:relative;margin-bottom:.85rem;">
+      <span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.85rem;">📱</span>
+      <input id="order-phone" type="tel" placeholder="رقم الجوال (مثال: 0501234567)" required
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem 2.2rem .7rem 1rem;color:#f8fafc;font-size:.875rem;outline:none;font-family:inherit;transition:border .3s;"
+        onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+    </div>
+    <!-- Notes -->
+    <textarea id="order-notes" placeholder="ملاحظات أو تفاصيل إضافية (اختياري)" rows="3"
+      style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem 1rem;color:#f8fafc;font-size:.875rem;outline:none;font-family:inherit;resize:vertical;margin-bottom:.85rem;transition:border .3s;"
+      onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"></textarea>
+
+    <!-- CAPTCHA -->
+    <div style="background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+      <span style="color:#94a3b8;font-size:.85rem;">🔐 تحقق: <strong id="captcha-question" style="color:#c084fc;"></strong></span>
+      <input id="captcha-input" id="captcha-answer" type="number" placeholder="الجواب" required
+        style="width:80px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem .6rem;color:#f8fafc;font-size:.875rem;outline:none;"
+        autocomplete="off">
+      <span id="captcha-answer" data-answer=""></span>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit"
+      style="width:100%;background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:12px;padding:.8rem;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .3s;font-family:inherit;"
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(139,92,246,.5)'"
+      onmouseout="this.style.transform='';this.style.boxShadow=''">
+      🚀 إرسال الطلب
+    </button>
+
+    <!-- Message -->
+    <p id="order-msg" style="text-align:center;margin-top:.75rem;font-size:.875rem;min-height:1.2rem;"></p>
+  </form>
+</div>

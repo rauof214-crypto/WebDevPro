@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دخول الموظفين</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{min-height:100vh;background:#06010f;font-family:'Inter',sans-serif;color:#f8fafc;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    .orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(80px);}
+    .orb1{width:500px;height:500px;top:-20%;left:-10%;background:radial-gradient(circle,rgba(88,28,135,.4),transparent 70%);}
+    .orb2{width:400px;height:400px;bottom:0;right:-10%;background:radial-gradient(circle,rgba(109,40,217,.3),transparent 70%);}
+    .card{background:rgba(13,5,32,.97);border:1px solid rgba(139,92,246,.2);border-radius:24px;padding:2.5rem;width:90%;max-width:400px;position:relative;z-index:1;box-shadow:0 25px 80px rgba(0,0,0,.6);}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,.5),transparent);border-radius:24px 24px 0 0;}
+    .logo-area{text-align:center;margin-bottom:2rem;}
+    .logo-icon{width:64px;height:64px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(168,85,247,.1));border:1px solid rgba(139,92,246,.35);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 1rem;}
+    h1{font-size:1.5rem;font-weight:700;}
+    .sub{color:#64748b;font-size:.85rem;margin-top:.3rem;}
+    .field{position:relative;margin-bottom:1rem;}
+    .field i{position:absolute;right:1rem;top:50%;transform:translateY(-50%);color:#64748b;}
+    .field input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem 2.5rem .8rem 1rem;color:#f8fafc;font-size:.9rem;outline:none;font-family:inherit;transition:border-color .3s;}
+    .field input:focus{border-color:rgba(139,92,246,.6);}
+    .btn{width:100%;background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:12px;padding:.85rem;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .3s;font-family:inherit;margin-top:.5rem;}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(139,92,246,.5);}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+    .err{color:#f87171;font-size:.82rem;text-align:center;margin-top:.75rem;min-height:1.1rem;}
+    .badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:#c084fc;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border-radius:50px;margin-bottom:.75rem;}
+  </style>
+</head>
+<body>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <div class="card">
+    <div class="logo-area">
+      <div class="logo-icon"><i class="fa fa-shield-halved"></i></div>
+      <div class="badge"><i class="fa fa-users-cog"></i> بوابة الموظفين</div>
+      <h1>تسجيل الدخول</h1>
+      <p class="sub">هذه الصفحة للموظفين المعتمدين فقط</p>
+    </div>
+
+    <form id="login-form">
+      <div class="field">
+        <i class="fa fa-envelope"></i>
+        <input type="email" id="emp-email" placeholder="البريد الإلكتروني" required autocomplete="email">
+      </div>
+      <div class="field">
+        <i class="fa fa-lock"></i>
+        <input type="password" id="emp-pass" placeholder="كلمة المرور" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn" id="login-btn">
+        <i class="fa fa-right-to-bracket"></i> دخول
+      </button>
+      <p class="err" id="login-err"></p>
+    </form>
+  </div>
+
+  <script>
+    // ── CONFIG ──────────────────────────────────────
+    const SUPABASE_URL     = 'https://YOUR_PROJECT_ID.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_PUBLIC_KEY';
+    // ────────────────────────────────────────────────
+
+    const { createClient } = window.supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Redirect if already logged in
+    sb.auth.getSession().then(({ data }) => {
+      if (data?.session) window.location.href = 'dashboard.html';
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl  = document.getElementById('login-err');
+      const btn    = document.getElementById('login-btn');
+      const email  = document.getElementById('emp-email').value.trim();
+      const pass   = document.getElementById('emp-pass').value;
+
+      errEl.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'جاري التحقق...';
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+      if (error) {
+        errEl.textContent = '❌ البريد أو كلمة المرور غير صحيحة';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-right-to-bracket"></i> دخول';
+        return;
+      }
+
+      // Verify employee record exists in employees table
+      const { data: emp, error: empErr } = await sb
+        .from('employees')
+        .select('id, role')
+        .eq('email', email)
+        .single();
+
+      if (empErr || !emp) {
+        await sb.auth.signOut();
+        errEl.textContent = '❌ ليس لديك صلاحية الدخول كموظف';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-right-to-bracket"></i> دخول';
+        return;
+      }
+
+      // Save role and redirect
+      localStorage.setItem('emp_role', emp.role);
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>

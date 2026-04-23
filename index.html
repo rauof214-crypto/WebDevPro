@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="خدمات تطوير الويب الاحترافية — مواقع، متاجر، تطبيقات">
+    <title>WebDev Pro | خدمات تطوير الويب</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="imge/Black and White Logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <!-- Cyberpunk WebDev 3D Background -->
+    <div class="cyber-bg" id="cyber-bg" aria-hidden="true">
+        <div class="cyber-glow glow-purple"></div>
+        <div class="cyber-glow glow-green"></div>
+        
+        <div class="cyber-parallax" id="cyber-parallax">
+            <!-- Matrix Rain / Binary Layers -->
+            <div class="cyber-layer layer-back" id="layer-back"></div>
+            <div class="cyber-layer layer-mid" id="layer-mid"></div>
+            <div class="cyber-layer layer-front" id="layer-front"></div>
+            
+            <!-- Floating Tech Icons & Code Snippets -->
+            <div class="cyber-floating" id="cyber-floating"></div>
+        </div>
+    </div>
+
+    <!-- ========== AUTH MODAL ========== -->
+    <div class="overlay" id="auth-overlay" onclick="if(event.target===this)closeAuth()"></div>
+    <div class="modal auth-modal" id="auth-modal" role="dialog" aria-modal="true">
+        <button class="close-btn" onclick="closeAuth()"><i class="fa fa-xmark"></i></button>
+        <div class="auth-icon"><i class="fa fa-code"></i></div>
+        <h2>مرحباً بك</h2>
+        <p class="muted">سجّل دخولك لمتابعة طلباتك</p>
+        <button class="btn-google" id="btn-google" onclick="signInGoogle()">
+            <i class="fa-brands fa-google"></i> متابعة عبر Google
+        </button>
+        <div class="divider"><span>أو</span></div>
+        <form onsubmit="signInEmail(event)">
+            <div class="field"><i class="fa fa-envelope"></i><input type="email" id="em" placeholder="البريد الإلكتروني"
+                    required></div>
+            <div class="field"><i class="fa fa-lock"></i><input type="password" id="pw" placeholder="كلمة المرور"
+                    required></div>
+            <button type="submit" class="btn-primary full">دخول</button>
+        </form>
+    </div>
+
+    <!-- ========== CART SIDEBAR ========== -->
+    <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+    <aside class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-head">
+            <h3><i class="fa fa-cart-shopping"></i> السلة</h3>
+            <button onclick="toggleCart()"><i class="fa fa-xmark"></i></button>
+        </div>
+        <div id="cart-body">
+            <div class="cart-empty" id="cart-empty"><i class="fa fa-cart-shopping fa-3x"></i>
+                <p>السلة فارغة</p>
+            </div>
+            <div id="cart-items"></div>
+        </div>
+        <div class="cart-foot" id="cart-foot" style="display:none">
+            <div class="cart-total">المجموع: <strong id="cart-total">$0</strong></div>
+            <button class="btn-primary full" onclick="openPayment()"><i class="fa fa-credit-card"></i> إتمام
+                الطلب</button>
+        </div>
+    </aside>
+
+    <!-- ========== نموذج طلب الخدمة (ORDER MODAL) ========== -->
+    <!-- الـ Overlay الداكن خلف المودال -->
+    <div id="order-overlay"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:999;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;"></div>
+
+    <!-- صندوق المودال -->
+    <div id="order-modal"
+        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);z-index:1000;background:#0d0520;border:1px solid rgba(139,92,246,.3);border-radius:20px;padding:2rem;width:92%;max-width:500px;color:#f8fafc;opacity:0;transition:opacity .3s,transform .3s;">
+
+        <!-- زر الإغلاق -->
+        <button onclick="closeOrderModal()"
+            style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#94a3b8;font-size:1.3rem;cursor:pointer;transition:color .3s;"
+            onmouseover="this.style.color='#a855f7'" onmouseout="this.style.color='#94a3b8'">✕</button>
+
+        <!-- رأس المودال -->
+        <div style="text-align:center;margin-bottom:1.5rem;">
+            <div style="font-size:2rem;margin-bottom:.5rem;">📋</div>
+            <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:.4rem;">اطلب الخدمة</h2>
+            <p style="color:#a855f7;font-weight:600;font-size:.9rem;">
+                <span id="modal-service-name"></span> — <span id="modal-price"></span>
+            </p>
+        </div>
+
+        <!-- نموذج البيانات -->
+        <form id="order-form">
+            <!-- الاسم -->
+            <input type="text" id="customer-name" placeholder="الاسم الكامل *" required
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;color:#f8fafc;font-size:.875rem;margin-bottom:.75rem;outline:none;font-family:inherit;transition:border .3s;"
+                onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+
+            <!-- الإيميل -->
+            <input type="email" id="customer-email" placeholder="البريد الإلكتروني *" required
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;color:#f8fafc;font-size:.875rem;margin-bottom:.75rem;outline:none;font-family:inherit;transition:border .3s;"
+                onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+
+            <!-- الجوال -->
+            <input type="tel" id="customer-phone" placeholder="رقم الجوال (اختياري)"
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;color:#f8fafc;font-size:.875rem;margin-bottom:.75rem;outline:none;font-family:inherit;transition:border .3s;"
+                onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+
+            <!-- ملاحظات -->
+            <textarea id="customer-notes" placeholder="ملاحظات أو متطلبات إضافية" rows="3"
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;color:#f8fafc;font-size:.875rem;margin-bottom:1rem;outline:none;font-family:inherit;resize:vertical;transition:border .3s;"
+                onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'"></textarea>
+
+            <!-- خانة رفع صورة التصميم المرجعي -->
+            <div id="img-upload-area"
+                style="border:2px dashed rgba(139,92,246,.35);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;margin-bottom:1rem;transition:all .3s;position:relative;"
+                onclick="document.getElementById('design-image').click()"
+                ondragover="event.preventDefault();this.style.borderColor='rgba(168,85,247,.7)'"
+                ondragleave="this.style.borderColor='rgba(139,92,246,.35)'"
+                ondrop="handleImageDrop(event)">
+
+                <!-- الأيقونة والنص الافتراضي -->
+                <div id="img-placeholder">
+                    <div style="font-size:1.8rem;margin-bottom:.4rem;">🖼️</div>
+                    <p style="font-size:.8rem;color:#94a3b8;margin:0;">
+                        انقر أو اسحب صورة مرجعية للتصميم<br>
+                        <span style="color:#64748b;font-size:.72rem;">(اختياري — JPG, PNG, WEBP — حد أقصى 5MB)</span>
+                    </p>
+                </div>
+
+                <!-- معاينة الصورة بعد الاختيار -->
+                <div id="img-preview-wrap" style="display:none;">
+                    <img id="img-preview" src="" alt="معاينة" style="max-height:140px;max-width:100%;border-radius:8px;object-fit:contain;">
+                    <p id="img-name" style="font-size:.75rem;color:#94a3b8;margin:.5rem 0 0;"></p>
+                    <button type="button" onclick="clearImage(event)"
+                        style="margin-top:.4rem;background:rgba(239,68,68,.15);border:none;color:#f87171;border-radius:6px;padding:.25rem .6rem;cursor:pointer;font-size:.75rem;">
+                        ✕ إزالة الصورة
+                    </button>
+                </div>
+
+                <!-- حقل الملف المخفي -->
+                <input type="file" id="design-image" accept="image/jpeg,image/png,image/webp,image/gif"
+                    style="display:none;" onchange="previewImage(this)">
+            </div>
+
+            <!-- رسالة النتيجة -->
+            <p id="order-result-msg" style="text-align:center;font-size:.875rem;min-height:1.2rem;margin-bottom:.75rem;"></p>
+
+            <!-- الأزرار -->
+            <div style="display:flex;gap:.75rem;">
+                <button type="button" onclick="closeOrderModal()"
+                    style="flex:1;padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#94a3b8;border-radius:10px;cursor:pointer;font-family:inherit;transition:all .3s;"
+                    onmouseover="this.style.borderColor='rgba(139,92,246,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.1)'">إلغاء</button>
+                <button type="submit"
+                    style="flex:2;padding:.75rem;background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.95rem;transition:all .3s;"
+                    onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(139,92,246,.5)'"
+                    onmouseout="this.style.transform='';this.style.boxShadow=''">إرسال الطلب 🚀</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========== PORTFOLIO EDIT MODAL (admin) ========== -->
+    <div class="overlay" id="port-overlay" onclick="if(event.target===this)closePortModal()"></div>
+    <div class="modal port-modal" id="port-modal" role="dialog">
+        <button class="close-btn" onclick="closePortModal()"><i class="fa fa-xmark"></i></button>
+        <h2 id="port-modal-title">إضافة عمل</h2>
+        <input type="hidden" id="port-id">
+        <input class="inp" type="text" id="port-title" placeholder="عنوان المشروع">
+        <input class="inp" type="text" id="port-url" placeholder="رابط المشروع">
+        <input class="inp" type="text" id="port-img" placeholder="رابط الصورة">
+        <input class="inp" type="text" id="port-tech" placeholder="التقنيات (مثال: React, Node)">
+        <textarea class="inp" id="port-desc" rows="3" placeholder="وصف المشروع"></textarea>
+        <button class="btn-primary full" onclick="savePortfolio()">حفظ</button>
+    </div>
+
+    <!-- ========== ADMIN PANEL ========== -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-head">
+            <h2><i class="fa fa-gauge-high"></i> لوحة التحكم</h2>
+            <button onclick="closeAdmin()"><i class="fa fa-xmark"></i></button>
+        </div>
+        <div class="admin-layout">
+            <nav class="admin-nav">
+                <button class="anav active" onclick="aTab('dash',this)"><i class="fa fa-gauge-high"></i> عام</button>
+                <button class="anav" onclick="aTab('orders',this)"><i class="fa fa-box"></i> الطلبات</button>
+                <button class="anav" onclick="aTab('portfolio',this)"><i class="fa fa-images"></i> الأعمال</button>
+                <button class="anav" onclick="aTab('reviews',this)"><i class="fa fa-star"></i> التقييمات</button>
+            </nav>
+            <div class="admin-content">
+                <div class="atab active" id="atab-dash">
+                    <div class="stats-grid">
+                        <div class="stat-card"><i class="fa fa-box-open"></i>
+                            <div><big id="s-orders">0</big><small>طلبات</small></div>
+                        </div>
+                        <div class="stat-card"><i class="fa fa-users"></i>
+                            <div><big id="s-users">0</big><small>مستخدمون</small></div>
+                        </div>
+                        <div class="stat-card"><i class="fa fa-dollar-sign"></i>
+                            <div><big id="s-rev">$0</big><small>إيرادات</small></div>
+                        </div>
+                        <div class="stat-card"><i class="fa fa-star"></i>
+                            <div><big id="s-rate">5.0</big><small>تقييم</small></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="atab" id="atab-orders">
+                    <h3>الطلبات</h3>
+                    <div class="table-wrap">
+                        <table class="atbl" id="orders-tbl">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>العميل</th>
+                                    <th>الخدمة</th>
+                                    <th>المبلغ</th>
+                                    <th>الحالة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="atab" id="atab-portfolio">
+                    <div class="atab-header">
+                        <h3>الأعمال السابقة</h3>
+                        <button class="btn-primary btn-sm" onclick="openPortModal()"><i class="fa fa-plus"></i>
+                            إضافة</button>
+                    </div>
+                    <div id="admin-portfolio-list"></div>
+                </div>
+                <div class="atab" id="atab-reviews">
+                    <h3>التقييمات</h3>
+                    <div id="admin-reviews-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== HEADER ========== -->
+    <header id="site-header">
+        <a class="logo-link" href="#home">
+            <img src="imge/Black and White Logo.svg" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <span class="logo-text">WebDev<span class="grad">Pro</span></span>
+        </a>
+        <nav class="nav-links">
+            <a href="#home">الرئيسية</a>
+            <a href="#services">الخدمات</a>
+            <a href="#portfolio">أعمالي</a>
+            <a href="#reviews">التقييمات</a>
+            <a href="#contact">تواصل</a>
+        </nav>
+        <div class="nav-actions">
+            <button class="icon-btn" id="cart-btn" onclick="toggleCart()" aria-label="السلة">
+                <i class="fa fa-cart-shopping"></i>
+                <span class="badge" id="cart-badge" style="display:none">0</span>
+            </button>
+            <button class="icon-btn" id="auth-btn" onclick="openAuth()" aria-label="تسجيل الدخول"><i
+                    class="fa fa-user"></i></button>
+            <button class="icon-btn admin-only" id="admin-btn" onclick="openAdmin()" style="display:none"
+                aria-label="لوحة التحكم"><i class="fa fa-gauge-high"></i></button>
+            <button class="menu-btn" id="menu-btn" onclick="toggleMenu()" aria-label="القائمة"><i
+                    class="fa fa-bars"></i></button>
+        </div>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#home" onclick="toggleMenu()">الرئيسية</a>
+        <a href="#services" onclick="toggleMenu()">الخدمات</a>
+        <a href="#portfolio" onclick="toggleMenu()">أعمالي</a>
+        <a href="#reviews" onclick="toggleMenu()">التقييمات</a>
+        <a href="#contact" onclick="toggleMenu()">تواصل</a>
+    </div>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero" id="home">
+        <div class="hero-content reveal">
+            <span class="badge-pill"><i class="fa fa-bolt"></i> خدمات احترافية</span>
+            <h1>مواقع ويب <span class="grad">مذهلة</span><br>تصنع الفرق</h1>
+            <p class="sub">نبني لك تجارب رقمية استثنائية — من التصميم إلى البرمجة، بأعلى معايير الجودة.</p>
+            <div class="hero-btns">
+                <a href="#services" class="btn-primary"><i class="fa fa-rocket"></i> استعرض الخدمات</a>
+                <a href="#portfolio" class="btn-outline">أعمالي السابقة</a>
+            </div>
+            <div class="hero-stats">
+                <div class="hstat"><strong>+50</strong><span>مشروع</span></div>
+                <div class="hstat"><strong>5⭐</strong><span>تقييم</span></div>
+                <div class="hstat"><strong>100%</strong><span>رضا العملاء</span></div>
+            </div>
+        </div>
+        <div class="hero-3d reveal-right">
+            <div class="cube-wrapper">
+                <div class="cube">
+                    <div class="face front"><i class="fa-brands fa-react"></i></div>
+                    <div class="face back"><i class="fa-brands fa-node-js"></i></div>
+                    <div class="face right"><i class="fa-brands fa-js"></i></div>
+                    <div class="face left"><i class="fa-brands fa-css3-alt"></i></div>
+                    <div class="face top"><i class="fa-solid fa-database"></i></div>
+                    <div class="face bottom"><i class="fa-brands fa-github"></i></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ========== SERVICES ========== -->
+    <section class="section" id="services">
+        <div class="section-head reveal">
+            <span class="section-tag">الخدمات</span>
+            <h2>اختر <span class="grad">خدمتك</span></h2>
+            <p class="muted">ثلاثة حلول متكاملة لكل احتياجاتك الرقمية</p>
+        </div>
+        <div class="services-grid" id="services-grid">
+            <!-- سيتم ملء الخدمات ديناميكياً من قاعدة البيانات -->
+            <div style="text-align:center; padding:2rem; color:#94a3b8; grid-column:1/-1;">جاري تحميل الخدمات...</div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ========== PORTFOLIO ========== -->
+    <section class="section" id="portfolio">
+        <div class="section-head reveal">
+            <span class="section-tag">أعمالي</span>
+            <h2>مشاريع <span class="grad">سابقة</span></h2>
+            <p class="muted">نماذج من أعمالنا المنجزة</p>
+        </div>
+        <div class="portfolio-grid" id="portfolio-grid">
+            <!-- سيتم ملء الأعمال ديناميكياً من قاعدة البيانات -->
+            <div style="text-align:center; padding:2rem; color:#94a3b8; grid-column:1/-1;">جاري تحميل الأعمال السابقة...</div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ========== REVIEWS ========== -->
+    <section class="section" id="reviews">
+        <div class="section-head reveal">
+            <span class="section-tag">آراء العملاء</span>
+            <h2>ماذا يقول <span class="grad">عملاؤنا</span></h2>
+        </div>
+        <div class="reviews-grid" id="reviews-grid">
+            <!-- سيتم ملء التقييمات ديناميكياً من قاعدة البيانات -->
+            <div style="text-align:center; padding:2rem; color:#94a3b8; grid-column:1/-1;">جاري تحميل آراء العملاء...</div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ========== CONTACT ========== -->
+    <section class="section contact-section" id="contact">
+        <div class="section-head reveal">
+            <span class="section-tag">تواصل معي</span>
+            <h2>جاهز <span class="grad">لمشروعك؟</span></h2>
+            <p class="muted">تواصل معنا الآن وابدأ مشروعك خلال 24 ساعة</p>
+        </div>
+        <div class="contact-cards reveal">
+            <a href="https://wa.me/96600000000" class="contact-card whatsapp" target="_blank" rel="noopener">
+                <div class="contact-icon"><i class="fa-brands fa-whatsapp"></i></div>
+                <h4>واتساب</h4>
+                <p>+966 00 000 0000</p>
+                <span class="contact-cta">ابدأ المحادثة <i class="fa fa-arrow-left"></i></span>
+            </a>
+            <a href="https://instagram.com/yourusername" class="contact-card instagram" target="_blank" rel="noopener">
+                <div class="contact-icon"><i class="fa-brands fa-instagram"></i></div>
+                <h4>إنستغرام</h4>
+                <p>@yourusername</p>
+                <span class="contact-cta">تابعنا <i class="fa fa-arrow-left"></i></span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer>
+        <div class="footer-inner">
+            <span class="logo-text">WebDev<span class="grad">Pro</span></span>
+            <p class="muted">© 2026 — جميع الحقوق محفوظة</p>
+            <div class="footer-links">
+                <a href="#home">الرئيسية</a>
+                <a href="#services">الخدمات</a>
+                <a href="#contact">تواصل</a>
+                <!-- رابط دخول الموظفين — خفي وبسيط -->
+                <button onclick="openEmpLogin()"
+                    style="background:none;border:none;color:#475569;font-size:.75rem;cursor:pointer;font-family:inherit;padding:0;transition:color .3s;"
+                    onmouseover="this.style.color='#8b5cf6'" onmouseout="this.style.color='#475569'">
+                    🔒 دخول الموظفين
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== مودال دخول الموظفين ========== -->
+    <!-- الخلفية الداكنة -->
+    <div id="emp-overlay"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:999;opacity:0;transition:opacity .3s;"
+        onclick="if(event.target===this)closeEmpLogin()"></div>
+
+    <!-- صندوق المودال -->
+    <div id="emp-modal"
+        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);z-index:1000;background:#0d0520;border:1px solid rgba(139,92,246,.25);border-radius:20px;padding:2rem;width:92%;max-width:380px;color:#f8fafc;opacity:0;transition:opacity .3s,transform .3s;">
+
+        <!-- زر الإغلاق -->
+        <button onclick="closeEmpLogin()"
+            style="position:absolute;top:.9rem;right:1rem;background:none;border:none;color:#64748b;font-size:1.1rem;cursor:pointer;transition:color .3s;"
+            onmouseover="this.style.color='#a855f7'" onmouseout="this.style.color='#64748b'">✕</button>
+
+        <!-- رأس -->
+        <div style="text-align:center;margin-bottom:1.5rem;">
+            <div style="font-size:1.8rem;margin-bottom:.4rem;">🛡️</div>
+            <h3 style="font-size:1.1rem;font-weight:700;">دخول الموظفين</h3>
+            <p style="font-size:.78rem;color:#64748b;margin-top:.25rem;">خاص بالموظفين المعتمدين فقط</p>
+        </div>
+
+        <!-- نموذج الدخول -->
+        <form id="emp-login-form" onsubmit="handleEmpLogin(event)">
+            <!-- الإيميل -->
+            <div style="position:relative;margin-bottom:.75rem;">
+                <span style="position:absolute;right:.85rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.85rem;">&#9993;</span>
+                <input type="email" id="emp-email" placeholder="البريد الإلكتروني" required autocomplete="email"
+                    style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:.7rem 2.2rem .7rem 1rem;color:#f8fafc;font-size:.875rem;outline:none;font-family:inherit;transition:border .3s;"
+                    onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
+            </div>
+            <!-- كلمة المرور -->
+            <div style="position:relative;margin-bottom:1rem;">
+                <span style="position:absolute;right:.85rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.85rem;">&#128274;</span>
+                <input type="password" id="emp-pass" placeholder="كلمة المرور" required autocomplete="current-password"
+                    style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:.7rem 2.2rem .7rem 1rem;color:#f8fafc;font-size:.875rem;outline:none;font-family:inherit;transition:border .3s;"
+                    onfocus="this.style.borderColor='rgba(139,92,246,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
+            </div>
+            <!-- رسالة الخطأ -->
+            <p id="emp-err" style="color:#f87171;font-size:.8rem;text-align:center;min-height:1rem;margin-bottom:.6rem;"></p>
+            <!-- زر الدخول -->
+            <button type="submit" id="emp-submit-btn"
+                style="width:100%;padding:.8rem;background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .3s;"
+                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(139,92,246,.5)'"
+                onmouseout="this.style.transform='';this.style.boxShadow=''">
+                🔓 دخول
+            </button>
+        </form>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

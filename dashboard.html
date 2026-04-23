@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>لوحة التحكم</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#06010f;--card:rgba(13,5,32,.97);--p:#8b5cf6;--pa:#a855f7;--txt:#f8fafc;--txt2:#94a3b8;--br:rgba(255,255,255,.08);}
+body{min-height:100vh;background:var(--bg);font-family:'Inter',sans-serif;color:var(--txt);}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--card);border-left:1px solid var(--br);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:.4rem;flex-shrink:0;}
+.sidebar-logo{font-size:1.1rem;font-weight:800;padding:.5rem .75rem 1.25rem;border-bottom:1px solid var(--br);margin-bottom:.5rem;}
+.sidebar-logo span{background:linear-gradient(135deg,var(--p),var(--pa));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.65rem .75rem;border-radius:10px;cursor:pointer;font-size:.83rem;color:var(--txt2);transition:all .3s;border:none;background:none;width:100%;text-align:right;}
+.nav-item:hover{background:rgba(139,92,246,.1);color:var(--txt);}
+.nav-item.active{background:rgba(139,92,246,.18);color:var(--pa);border:1px solid rgba(139,92,246,.2);}
+.nav-item i{width:16px;text-align:center;}
+.logout-btn{margin-top:auto;color:#f87171!important;}
+.logout-btn:hover{background:rgba(239,68,68,.1)!important;}
+.main{flex:1;padding:2rem;overflow-y:auto;}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.page-header h1{font-size:1.4rem;font-weight:700;}
+.emp-badge{background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);color:var(--pa);font-size:.78rem;padding:.3rem .8rem;border-radius:50px;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.stat{background:var(--card);border:1px solid var(--br);border-radius:14px;padding:1.1rem;display:flex;align-items:center;gap:.9rem;}
+.stat i{font-size:1.3rem;color:var(--p);width:32px;text-align:center;}
+.stat big{display:block;font-size:1.5rem;font-weight:800;line-height:1;}
+.stat small{color:var(--txt2);font-size:.72rem;}
+.tabs{display:none;}.tabs.active{display:block;}
+.filters{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;}
+.filter-btn{padding:.4rem 1rem;border-radius:50px;border:1px solid var(--br);background:none;color:var(--txt2);cursor:pointer;font-size:.78rem;transition:all .3s;}
+.filter-btn.active,.filter-btn:hover{background:rgba(139,92,246,.15);border-color:var(--p);color:var(--txt);}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th,td{padding:.75rem 1rem;text-align:right;border-bottom:1px solid var(--br);}
+th{color:var(--txt2);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.badge-status{padding:.2rem .65rem;border-radius:50px;font-size:.7rem;font-weight:700;white-space:nowrap;}
+.s-new{background:rgba(96,165,250,.12);color:#60a5fa;}
+.s-in_progress{background:rgba(251,191,36,.12);color:#fbbf24;}
+.s-done{background:rgba(74,222,128,.12);color:#4ade80;}
+select.status-select{background:rgba(255,255,255,.05);border:1px solid var(--br);color:var(--txt);border-radius:8px;padding:.3rem .5rem;font-size:.75rem;cursor:pointer;font-family:inherit;}
+.btn-add{background:linear-gradient(135deg,#5b21b6,var(--pa));color:#fff;border:none;border-radius:10px;padding:.55rem 1.2rem;cursor:pointer;font-size:.83rem;font-weight:600;display:inline-flex;align-items:center;gap:.4rem;transition:all .3s;}
+.btn-add:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(139,92,246,.4);}
+.del-btn{background:rgba(239,68,68,.15);border:none;color:#f87171;border-radius:8px;padding:.3rem .65rem;cursor:pointer;font-size:.75rem;transition:all .3s;}
+.del-btn:hover{background:rgba(239,68,68,.3);}
+.edit-btn{background:rgba(139,92,246,.15);border:none;color:var(--pa);border-radius:8px;padding:.3rem .65rem;cursor:pointer;font-size:.75rem;transition:all .3s;margin-left:.3rem;}
+.edit-btn:hover{background:rgba(139,92,246,.3);}
+/* FORM PANEL */
+.form-panel{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;display:none;}
+.form-panel.open{display:block;}
+.form-panel h4{font-size:.95rem;font-weight:700;margin-bottom:1rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;}
+.form-row.full{grid-template-columns:1fr;}
+.finp{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--br);border-radius:10px;padding:.65rem .9rem;color:var(--txt);font-size:.875rem;outline:none;font-family:inherit;transition:border .3s;}
+.finp:focus{border-color:rgba(139,92,246,.5);}
+.fsub{background:linear-gradient(135deg,#5b21b6,var(--pa));color:#fff;border:none;border-radius:10px;padding:.65rem 1.4rem;cursor:pointer;font-size:.875rem;font-weight:600;font-family:inherit;transition:all .3s;}
+.fsub:hover{transform:translateY(-2px);}
+.ferr{color:#f87171;font-size:.8rem;margin-top:.5rem;}
+.tab-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.tab-header h3{font-size:1rem;font-weight:600;}
+@media(max-width:640px){.sidebar{display:none;}.layout{display:block;}.main{padding:1rem;}.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-logo">WebDev <span>Pro</span></div>
+  <button class="nav-item active" onclick="showTab('orders',this)"><i class="fa fa-box"></i> الطلبات</button>
+  <button class="nav-item" id="nav-services" onclick="showTab('services',this)"><i class="fa fa-tags"></i> الخدمات</button>
+  <button class="nav-item" id="nav-portfolio" onclick="showTab('portfolio',this)"><i class="fa fa-images"></i> الأعمال</button>
+  <button class="nav-item" id="nav-reviews" onclick="showTab('reviews',this)"><i class="fa fa-star"></i> التقييمات</button>
+  <button class="nav-item" id="nav-employees" onclick="showTab('employees',this)"><i class="fa fa-users"></i> الموظفون</button>
+  <button class="nav-item logout-btn" onclick="doLogout()"><i class="fa fa-right-from-bracket"></i> خروج</button>
+</nav>
+<main class="main">
+  <div class="page-header">
+    <h1>لوحة التحكم</h1>
+    <span class="emp-badge" id="emp-name-badge">...</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><i class="fa fa-inbox"></i><div><big id="cnt-new">0</big><small>طلبات جديدة</small></div></div>
+    <div class="stat"><i class="fa fa-spinner"></i><div><big id="cnt-prog">0</big><small>قيد التنفيذ</small></div></div>
+    <div class="stat"><i class="fa fa-check-circle"></i><div><big id="cnt-done">0</big><small>مكتملة</small></div></div>
+    <div class="stat"><i class="fa fa-list"></i><div><big id="cnt-total">0</big><small>الإجمالي</small></div></div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div class="tabs active" id="tab-orders">
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterOrders('all',this)">الكل</button>
+      <button class="filter-btn" onclick="filterOrders('new',this)">جديد</button>
+      <button class="filter-btn" onclick="filterOrders('in_progress',this)">قيد التنفيذ</button>
+      <button class="filter-btn" onclick="filterOrders('done',this)">مكتمل</button>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الجوال</th><th>الخدمة</th><th>السعر</th><th>صورة</th><th>الحالة</th><th>ملاحظات</th><th>التاريخ</th></tr></thead>
+      <tbody id="orders-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- SERVICES TAB -->
+  <div class="tabs" id="tab-services">
+    <div class="tab-header">
+      <h3>إدارة الخدمات</h3>
+      <button class="btn-add" onclick="toggleForm('svc-form','svc-err')"><i class="fa fa-plus"></i> إضافة خدمة</button>
+    </div>
+    <div class="form-panel" id="svc-form">
+      <h4 id="svc-form-title">خدمة جديدة</h4>
+      <input type="hidden" id="svc-id">
+      <div class="form-row">
+        <input class="finp" id="svc-name" placeholder="اسم الخدمة *" required>
+        <input class="finp" id="svc-price" type="number" placeholder="السعر ($) *" required>
+      </div>
+      <div class="form-row">
+        <input class="finp" id="svc-badge" placeholder="الشارة (مثال: الأكثر طلباً)">
+        <select class="finp" id="svc-featured">
+          <option value="false">عادي</option>
+          <option value="true">مميز (موصى به)</option>
+        </select>
+      </div>
+      <div class="form-row full">
+        <textarea class="finp" id="svc-desc" rows="2" placeholder="وصف الخدمة"></textarea>
+      </div>
+      <div class="form-row full">
+        <textarea class="finp" id="svc-features" rows="3" placeholder="المميزات (سطر لكل ميزة)"></textarea>
+      </div>
+      <button class="fsub" onclick="saveService()">حفظ الخدمة</button>
+      <p class="ferr" id="svc-err"></p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>الاسم</th><th>السعر</th><th>الشارة</th><th>الوصف</th><th>إجراء</th></tr></thead>
+      <tbody id="svc-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- PORTFOLIO TAB -->
+  <div class="tabs" id="tab-portfolio">
+    <div class="tab-header">
+      <h3>الأعمال السابقة</h3>
+      <button class="btn-add" onclick="toggleForm('port-form','port-err')"><i class="fa fa-plus"></i> إضافة عمل</button>
+    </div>
+    <div class="form-panel" id="port-form">
+      <h4 id="port-form-title">عمل جديد</h4>
+      <input type="hidden" id="port-id">
+      <div class="form-row">
+        <input class="finp" id="port-title" placeholder="عنوان المشروع *" required>
+        <input class="finp" id="port-url" placeholder="رابط المشروع">
+      </div>
+      <div class="form-row">
+        <input class="finp" id="port-img" placeholder="رابط الصورة">
+        <input class="finp" id="port-tech" placeholder="التقنيات (React, Node, ...)">
+      </div>
+      <div class="form-row full">
+        <textarea class="finp" id="port-desc" rows="2" placeholder="وصف المشروع"></textarea>
+      </div>
+      <button class="fsub" onclick="savePortfolio()">حفظ العمل</button>
+      <p class="ferr" id="port-err"></p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>العنوان</th><th>التقنيات</th><th>الرابط</th><th>إجراء</th></tr></thead>
+      <tbody id="port-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- REVIEWS TAB -->
+  <div class="tabs" id="tab-reviews">
+    <div class="tab-header">
+      <h3>آراء الزبائن</h3>
+      <button class="btn-add" onclick="toggleForm('rev-form','rev-err')"><i class="fa fa-plus"></i> إضافة تقييم</button>
+    </div>
+    <div class="form-panel" id="rev-form">
+      <h4 id="rev-form-title">تقييم جديد</h4>
+      <input type="hidden" id="rev-id">
+      <div class="form-row">
+        <input class="finp" id="rev-name" placeholder="اسم الزبون *" required>
+        <input class="finp" id="rev-title" placeholder="المسمى الوظيفي (مثال: مدير شركة)">
+      </div>
+      <div class="form-row">
+        <select class="finp" id="rev-rating">
+          <option value="5">⭐⭐⭐⭐⭐ — 5 نجوم</option>
+          <option value="4">⭐⭐⭐⭐ — 4 نجوم</option>
+          <option value="3">⭐⭐⭐ — 3 نجوم</option>
+        </select>
+        <select class="finp" id="rev-visible">
+          <option value="true">ظاهر</option>
+          <option value="false">مخفي</option>
+        </select>
+      </div>
+      <div class="form-row full">
+        <textarea class="finp" id="rev-content" rows="3" placeholder="نص التقييم *" required></textarea>
+      </div>
+      <button class="fsub" onclick="saveReview()">حفظ التقييم</button>
+      <p class="ferr" id="rev-err"></p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>الاسم</th><th>التقييم</th><th>النص</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="rev-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- EMPLOYEES TAB -->
+  <div class="tabs" id="tab-employees">
+    <div class="tab-header">
+      <h3>الموظفون</h3>
+      <button class="btn-add" onclick="toggleForm('emp-form','add-emp-err')"><i class="fa fa-plus"></i> إضافة موظف</button>
+    </div>
+    <div class="form-panel" id="emp-form">
+      <h4>موظف جديد</h4>
+      <div class="form-row">
+        <input class="finp" id="ne-name" placeholder="الاسم الكامل" required>
+        <input class="finp" id="ne-email" type="email" placeholder="البريد الإلكتروني" required>
+      </div>
+      <div class="form-row">
+        <input class="finp" id="ne-pass" type="password" placeholder="كلمة المرور (8+)" required>
+        <select class="finp" id="ne-role"><option value="worker">موظف</option><option value="admin">مدير</option></select>
+      </div>
+      <button class="fsub" onclick="addEmployee()">إضافة</button>
+      <p class="ferr" id="add-emp-err"></p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>الاسم</th><th>البريد</th><th>الدور</th><th>التاريخ</th><th>حذف</th></tr></thead>
+      <tbody id="emp-body"></tbody>
+    </table></div>
+  </div>
+</main>
+</div>
+
+
+<script>
+const SUPABASE_URL      = 'https://xgxrnjjarkadzrqkbxno.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_XvhqP5jG-Y0GvG9Phae6cw_9Ii_Ovyf';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allOrders=[], currentFilter='all', empRole='worker';
+
+// ── AUTH ───────────────────────────────────────────────────
+async function initAuth() {
+  const { data } = await sb.auth.getSession();
+  if (!data?.session) { window.location.href='index.html'; return; }
+  const email = data.session.user.email;
+  const { data: emp } = await sb.from('employees').select('full_name,role').eq('email',email).single();
+  if (emp) {
+    empRole = emp.role;
+    document.getElementById('emp-name-badge').textContent = `${emp.full_name} (${emp.role==='admin'?'مدير':'موظف'})`;
+    if (emp.role !== 'admin') {
+      document.getElementById('nav-employees').style.display='none';
+      document.getElementById('nav-services').style.display='none';
+      document.getElementById('nav-portfolio').style.display='none';
+      document.getElementById('nav-reviews').style.display='none';
+    }
+  } else {
+    empRole='admin';
+    document.getElementById('emp-name-badge').textContent = email;
+  }
+  loadOrders();
+}
+async function doLogout() { await sb.auth.signOut(); window.location.href='index.html'; }
+
+// ── TABS ───────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tabs').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='employees') loadEmployees();
+  if(name==='services')  loadServices();
+  if(name==='portfolio') loadPortfolio();
+  if(name==='reviews')   loadReviews();
+}
+
+function toggleForm(formId, errId) {
+  const f = document.getElementById(formId);
+  f.classList.toggle('open');
+  if(errId) document.getElementById(errId).textContent='';
+}
+
+// ── ORDERS ─────────────────────────────────────────────────
+async function loadOrders() {
+  const { data } = await sb.from('orders').select('*').order('created_at',{ascending:false});
+  allOrders = data||[];
+  document.getElementById('cnt-new').textContent   = allOrders.filter(o=>o.status==='new').length;
+  document.getElementById('cnt-prog').textContent  = allOrders.filter(o=>o.status==='in_progress').length;
+  document.getElementById('cnt-done').textContent  = allOrders.filter(o=>o.status==='done').length;
+  document.getElementById('cnt-total').textContent = allOrders.length;
+  renderOrders();
+}
+function filterOrders(status,btn) {
+  currentFilter=status;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderOrders();
+}
+function renderOrders() {
+  const list = currentFilter==='all'?allOrders:allOrders.filter(o=>o.status===currentFilter);
+  const tb = document.getElementById('orders-body');
+  if(!list.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:#64748b;padding:2rem">لا توجد طلبات</td></tr>';return;}
+  tb.innerHTML = list.map((o,i)=>`<tr>
+    <td style="color:#64748b">${i+1}</td>
+    <td><strong>${o.customer_name||'—'}</strong></td>
+    <td style="color:#94a3b8;font-size:.8rem">${o.email||'—'}</td>
+    <td dir="ltr">${o.phone||'—'}</td>
+    <td>${o.service_name||'—'}</td>
+    <td style="color:#4ade80;font-weight:700">$${o.price||0}</td>
+    <td>${o.design_image_url?`<a href="${o.design_image_url}" target="_blank" style="color:var(--pa);font-size:.78rem">عرض 🖼</a>`:'—'}</td>
+    <td><select class="status-select" onchange="updateStatus('${o.id}',this.value)">
+      <option value="new" ${o.status==='new'?'selected':''}>🔵 جديد</option>
+      <option value="in_progress" ${o.status==='in_progress'?'selected':''}>🟡 قيد التنفيذ</option>
+      <option value="done" ${o.status==='done'?'selected':''}>🟢 مكتمل</option>
+    </select></td>
+    <td style="max-width:140px;color:#94a3b8;font-size:.78rem">${o.notes||'—'}</td>
+    <td style="color:#64748b;font-size:.76rem;white-space:nowrap">${new Date(o.created_at).toLocaleDateString('ar-SA')}</td>
+  </tr>`).join('');
+}
+async function updateStatus(id,status) {
+  await sb.from('orders').update({status}).eq('id',id);
+  loadOrders();
+}
+
+// ── SERVICES ───────────────────────────────────────────────
+async function loadServices() {
+  const { data } = await sb.from('services').select('*').order('created_at',{ascending:false});
+  const tb = document.getElementById('svc-body');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem">لا توجد خدمات — أضف أول خدمة</td></tr>';return;}
+  tb.innerHTML = data.map((s,i)=>`<tr>
+    <td style="color:#64748b">${i+1}</td>
+    <td><strong>${s.name}</strong>${s.is_featured?'<span style="background:rgba(168,85,247,.15);color:#a855f7;font-size:.68rem;padding:.15rem .5rem;border-radius:50px;margin-right:.5rem">موصى به</span>':''}</td>
+    <td style="color:#4ade80;font-weight:700">$${s.price}</td>
+    <td><span style="color:#94a3b8;font-size:.8rem">${s.badge||'—'}</span></td>
+    <td style="max-width:200px;color:#94a3b8;font-size:.8rem">${s.description||'—'}</td>
+    <td><button class="edit-btn" onclick='editService(${JSON.stringify(s)})'><i class="fa fa-pen"></i></button>
+        <button class="del-btn" onclick="delService('${s.id}')"><i class="fa fa-trash"></i></button></td>
+  </tr>`).join('');
+}
+function editService(s) {
+  document.getElementById('svc-id').value = s.id;
+  document.getElementById('svc-name').value = s.name;
+  document.getElementById('svc-price').value = s.price;
+  document.getElementById('svc-badge').value = s.badge||'';
+  document.getElementById('svc-featured').value = String(s.is_featured||false);
+  document.getElementById('svc-desc').value = s.description||'';
+  document.getElementById('svc-features').value = (s.features||[]).join('\n');
+  document.getElementById('svc-form-title').textContent='تعديل الخدمة';
+  document.getElementById('svc-form').classList.add('open');
+}
+async function saveService() {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  const err = document.getElementById('svc-err');
+  const name = document.getElementById('svc-name').value.trim();
+  const price = parseInt(document.getElementById('svc-price').value)||0;
+  if(!name){err.textContent='❌ أدخل اسم الخدمة';return;}
+  if(!price){err.textContent='❌ أدخل السعر';return;}
+  const payload = {
+    name, price,
+    badge:       document.getElementById('svc-badge').value.trim()||null,
+    is_featured: document.getElementById('svc-featured').value==='true',
+    description: document.getElementById('svc-desc').value.trim()||null,
+    features:    document.getElementById('svc-features').value.split('\n').map(l=>l.trim()).filter(Boolean)
+  };
+  const id = document.getElementById('svc-id').value;
+  const { error } = id ? await sb.from('services').update(payload).eq('id',id)
+                        : await sb.from('services').insert([payload]);
+  if(error){err.textContent='❌ '+error.message;return;}
+  document.getElementById('svc-form').classList.remove('open');
+  document.getElementById('svc-id').value='';
+  document.getElementById('svc-form-title').textContent='خدمة جديدة';
+  document.getElementById('svc-form').querySelector('input[id="svc-name"]');
+  document.getElementById('svc-name').value='';
+  loadServices();
+}
+async function delService(id) {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  if(!confirm('حذف الخدمة؟')) return;
+  await sb.from('services').delete().eq('id',id);
+  loadServices();
+}
+
+// ── PORTFOLIO ──────────────────────────────────────────────
+async function loadPortfolio() {
+  const { data } = await sb.from('portfolio').select('*').order('created_at',{ascending:false});
+  const tb = document.getElementById('port-body');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">لا توجد أعمال</td></tr>';return;}
+  tb.innerHTML = data.map((p,i)=>`<tr>
+    <td style="color:#64748b">${i+1}</td>
+    <td><strong>${p.title}</strong></td>
+    <td style="color:#94a3b8;font-size:.8rem">${p.tech||'—'}</td>
+    <td>${p.url?`<a href="${p.url}" target="_blank" style="color:var(--pa);font-size:.8rem">رابط</a>`:'—'}</td>
+    <td><button class="edit-btn" onclick='editPortfolio(${JSON.stringify(p)})'><i class="fa fa-pen"></i></button>
+        <button class="del-btn" onclick="delPortfolio('${p.id}')"><i class="fa fa-trash"></i></button></td>
+  </tr>`).join('');
+}
+function editPortfolio(p) {
+  document.getElementById('port-id').value = p.id;
+  document.getElementById('port-title').value = p.title;
+  document.getElementById('port-url').value = p.url||'';
+  document.getElementById('port-img').value = p.img||'';
+  document.getElementById('port-tech').value = p.tech||'';
+  document.getElementById('port-desc').value = p.description||'';
+  document.getElementById('port-form-title').textContent='تعديل العمل';
+  document.getElementById('port-form').classList.add('open');
+}
+async function savePortfolio() {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  const err = document.getElementById('port-err');
+  const title = document.getElementById('port-title').value.trim();
+  if(!title){err.textContent='❌ أدخل عنوان المشروع';return;}
+  const payload = {
+    title,
+    url:         document.getElementById('port-url').value.trim()||null,
+    img:         document.getElementById('port-img').value.trim()||null,
+    tech:        document.getElementById('port-tech').value.trim()||null,
+    description: document.getElementById('port-desc').value.trim()||null
+  };
+  const id = document.getElementById('port-id').value;
+  const { error } = id ? await sb.from('portfolio').update(payload).eq('id',id)
+                        : await sb.from('portfolio').insert([payload]);
+  if(error){err.textContent='❌ '+error.message;return;}
+  document.getElementById('port-form').classList.remove('open');
+  document.getElementById('port-id').value='';
+  document.getElementById('port-form-title').textContent='عمل جديد';
+  loadPortfolio();
+}
+async function delPortfolio(id) {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  if(!confirm('حذف هذا العمل؟')) return;
+  await sb.from('portfolio').delete().eq('id',id);
+  loadPortfolio();
+}
+
+// ── REVIEWS ────────────────────────────────────────────────
+async function loadReviews() {
+  const { data } = await sb.from('reviews').select('*').order('created_at',{ascending:false});
+  const tb = document.getElementById('rev-body');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem">لا توجد تقييمات</td></tr>';return;}
+  tb.innerHTML = data.map((r,i)=>`<tr>
+    <td style="color:#64748b">${i+1}</td>
+    <td><strong>${r.reviewer_name}</strong><br><span style="color:#64748b;font-size:.75rem">${r.reviewer_title||''}</span></td>
+    <td>${'⭐'.repeat(r.rating||5)}</td>
+    <td style="max-width:200px;color:#94a3b8;font-size:.8rem">${r.content||''}</td>
+    <td><span class="badge-status ${r.is_visible?'s-done':'s-in_progress'}">${r.is_visible?'ظاهر':'مخفي'}</span></td>
+    <td><button class="edit-btn" onclick='editReview(${JSON.stringify(r)})'><i class="fa fa-pen"></i></button>
+        <button class="del-btn" onclick="delReview('${r.id}')"><i class="fa fa-trash"></i></button></td>
+  </tr>`).join('');
+}
+function editReview(r) {
+  document.getElementById('rev-id').value = r.id;
+  document.getElementById('rev-name').value = r.reviewer_name;
+  document.getElementById('rev-title').value = r.reviewer_title||'';
+  document.getElementById('rev-rating').value = String(r.rating||5);
+  document.getElementById('rev-visible').value = String(r.is_visible!==false);
+  document.getElementById('rev-content').value = r.content||'';
+  document.getElementById('rev-form-title').textContent='تعديل التقييم';
+  document.getElementById('rev-form').classList.add('open');
+}
+async function saveReview() {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  const err = document.getElementById('rev-err');
+  const name = document.getElementById('rev-name').value.trim();
+  const content = document.getElementById('rev-content').value.trim();
+  if(!name){err.textContent='❌ أدخل اسم الزبون';return;}
+  if(!content){err.textContent='❌ أدخل نص التقييم';return;}
+  const payload = {
+    reviewer_name:  name,
+    reviewer_title: document.getElementById('rev-title').value.trim()||null,
+    rating:         parseInt(document.getElementById('rev-rating').value)||5,
+    is_visible:     document.getElementById('rev-visible').value==='true',
+    content
+  };
+  const id = document.getElementById('rev-id').value;
+  const { error } = id ? await sb.from('reviews').update(payload).eq('id',id)
+                        : await sb.from('reviews').insert([payload]);
+  if(error){err.textContent='❌ '+error.message;return;}
+  document.getElementById('rev-form').classList.remove('open');
+  document.getElementById('rev-id').value='';
+  document.getElementById('rev-form-title').textContent='تقييم جديد';
+  loadReviews();
+}
+async function delReview(id) {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  if(!confirm('حذف هذا التقييم؟')) return;
+  await sb.from('reviews').delete().eq('id',id);
+  loadReviews();
+}
+
+// ── EMPLOYEES ──────────────────────────────────────────────
+async function loadEmployees() {
+  const { data } = await sb.from('employees').select('*').order('created_at');
+  const tb = document.getElementById('emp-body');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem">لا يوجد موظفون</td></tr>';return;}
+  tb.innerHTML = data.map((e,i)=>`<tr>
+    <td style="color:#64748b">${i+1}</td>
+    <td><strong>${e.full_name}</strong></td>
+    <td style="color:#94a3b8">${e.email}</td>
+    <td><span class="badge-status ${e.role==='admin'?'s-in_progress':'s-new'}">${e.role==='admin'?'مدير':'موظف'}</span></td>
+    <td style="color:#64748b;font-size:.8rem">${new Date(e.created_at).toLocaleDateString('ar-SA')}</td>
+    <td><button class="del-btn" onclick="delEmployee('${e.id}','${e.email}')"><i class="fa fa-trash"></i></button></td>
+  </tr>`).join('');
+}
+async function addEmployee() {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  const err=document.getElementById('add-emp-err');
+  const name=document.getElementById('ne-name').value.trim();
+  const email=document.getElementById('ne-email').value.trim();
+  const pass=document.getElementById('ne-pass').value;
+  const role=document.getElementById('ne-role').value;
+  if(!name||!email||pass.length<8){err.textContent='تأكد من ملء الحقول وكلمة المرور 8+';return;}
+  const {error}=await sb.from('employees').insert([{full_name:name,email,role}]);
+  if(error){err.textContent='❌ '+error.message;return;}
+  document.getElementById('emp-form').classList.remove('open');
+  loadEmployees();
+}
+async function delEmployee(id,email) {
+  if (empRole !== 'admin') return alert('عذراً، هذه الصلاحية للمديرين فقط');
+  if(!confirm(`حذف ${email}؟`)) return;
+  await sb.from('employees').delete().eq('id',id);
+  loadEmployees();
+}
+
+initAuth();
+</script>
+</body>
+</html>
