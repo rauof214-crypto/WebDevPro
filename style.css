@@ -297,9 +297,11 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--txt);overfl
 .contact-card:hover{transform:translateY(-6px);}
 .contact-card.whatsapp:hover{border-color:rgba(37,211,102,.4);box-shadow:0 20px 50px rgba(37,211,102,.15);}
 .contact-card.instagram:hover{border-color:rgba(225,48,108,.4);box-shadow:0 20px 50px rgba(225,48,108,.15);}
+.contact-card.twitter:hover{border-color:rgba(255,255,255,.4);box-shadow:0 20px 50px rgba(255,255,255,.1);}
 .contact-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;transition:all .4s;}
 .whatsapp .contact-icon{background:rgba(37,211,102,.1);color:#25d366;}
 .instagram .contact-icon{background:rgba(225,48,108,.1);color:#e1306c;}
+.twitter .contact-icon{background:rgba(255,255,255,.1);color:#fff;}
 .contact-card:hover .contact-icon{transform:scale(1.15);filter:drop-shadow(0 0 12px currentColor);}
 .contact-card h4{font-size:1rem;font-weight:700;}
 .contact-card p{font-size:.875rem;color:var(--txt2);}
