@@ -76,7 +76,10 @@ select.status-select{background:rgba(255,255,255,.05);border:1px solid var(--br)
 <body>
 <div class="layout">
 <nav class="sidebar">
-  <div class="sidebar-logo">WebDev <span>Pro</span></div>
+  <div class="sidebar-logo" style="display:flex; align-items:center; gap:0.5rem;">
+    <img src="imge/logo.png" alt="Logo" style="width:32px; height:32px; border-radius:6px;">
+    WebDev <span>Pro</span>
+  </div>
   <button class="nav-item active" onclick="showTab('orders',this)"><i class="fa fa-box"></i> الطلبات</button>
   <button class="nav-item" id="nav-services" onclick="showTab('services',this)"><i class="fa fa-tags"></i> الخدمات</button>
   <button class="nav-item" id="nav-portfolio" onclick="showTab('portfolio',this)"><i class="fa fa-images"></i> الأعمال</button>

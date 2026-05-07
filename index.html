@@ -7,7 +7,7 @@
     <meta name="description" content="خدمات تطوير الويب الاحترافية — مواقع، متاجر، تطبيقات">
     <title>WebDev Pro | خدمات تطوير الويب</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/svg+xml" href="imge/Black and White Logo.svg">
+    <link rel="icon" type="image/png" href="imge/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -17,17 +17,6 @@
     <!-- Cyberpunk WebDev 3D Background -->
     <div class="cyber-bg" id="cyber-bg" aria-hidden="true">
         <div class="cyber-glow glow-purple"></div>
-        <div class="cyber-glow glow-green"></div>
-        
-        <div class="cyber-parallax" id="cyber-parallax">
-            <!-- Matrix Rain / Binary Layers -->
-            <div class="cyber-layer layer-back" id="layer-back"></div>
-            <div class="cyber-layer layer-mid" id="layer-mid"></div>
-            <div class="cyber-layer layer-front" id="layer-front"></div>
-            
-            <!-- Floating Tech Icons & Code Snippets -->
-            <div class="cyber-floating" id="cyber-floating"></div>
-        </div>
     </div>
 
     <!-- ========== AUTH MODAL ========== -->
@@ -244,13 +233,13 @@
     <!-- ========== HEADER ========== -->
     <header id="site-header">
         <a class="logo-link" href="#home">
-            <img src="imge/Black and White Logo.svg" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <img src="imge/logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
             <span class="logo-text">WebDev<span class="grad">Pro</span></span>
         </a>
         <nav class="nav-links">
-            <a href="#home">الرئيسية</a>
+            <a href="#home" class="active">الرئيسية</a>
             <a href="#services">الخدمات</a>
-            <a href="#portfolio">أعمالي</a>
+            <a href="#portfolio">أعمالنا</a>
             <a href="#reviews">التقييمات</a>
             <a href="#contact">تواصل</a>
         </nav>
@@ -259,12 +248,9 @@
                 <i class="fa fa-cart-shopping"></i>
                 <span class="badge" id="cart-badge" style="display:none">0</span>
             </button>
-            <button class="icon-btn" id="auth-btn" onclick="openAuth()" aria-label="تسجيل الدخول"><i
-                    class="fa fa-user"></i></button>
-            <button class="icon-btn admin-only" id="admin-btn" onclick="openAdmin()" style="display:none"
-                aria-label="لوحة التحكم"><i class="fa fa-gauge-high"></i></button>
-            <button class="menu-btn" id="menu-btn" onclick="toggleMenu()" aria-label="القائمة"><i
-                    class="fa fa-bars"></i></button>
+            <button class="icon-btn" id="auth-btn" onclick="openAuth()" aria-label="تسجيل الدخول"><i class="fa fa-user"></i></button>
+            <button class="icon-btn admin-only" id="admin-btn" onclick="openAdmin()" style="display:none" aria-label="لوحة التحكم"><i class="fa fa-gauge-high"></i></button>
+            <button class="menu-btn" id="menu-btn" onclick="toggleMenu()" aria-label="القائمة"><i class="fa fa-bars"></i></button>
         </div>
     </header>
 
@@ -280,16 +266,16 @@
     <section class="hero" id="home">
         <div class="hero-content reveal">
             <span class="badge-pill"><i class="fa fa-bolt"></i> خدمات احترافية</span>
-            <h1>مواقع ويب <span class="grad">مذهلة</span><br>تصنع الفرق</h1>
+            <h1>مواقع <span class="grad">احترافية</span> وأنظمة رد <span class="grad">ذكية</span><br>تحوّل المحادثات إلى مبيعات</h1>
             <p class="sub">نبني لك تجارب رقمية استثنائية — من التصميم إلى البرمجة، بأعلى معايير الجودة.</p>
             <div class="hero-btns">
                 <a href="#services" class="btn-primary"><i class="fa fa-rocket"></i> استعرض الخدمات</a>
-                <a href="#portfolio" class="btn-outline">أعمالي السابقة</a>
+                <a href="#portfolio" class="btn-outline"><i class="fa fa-briefcase"></i> أعمالنا السابقة</a>
             </div>
             <div class="hero-stats">
-                <div class="hstat"><strong>+50</strong><span>مشروع</span></div>
-                <div class="hstat"><strong>5⭐</strong><span>تقييم</span></div>
-                <div class="hstat"><strong>100%</strong><span>رضا العملاء</span></div>
+                <div class="hstat"><i class="fa fa-layer-group"></i><div><strong>+50</strong><span>مشروع</span></div></div>
+                <div class="hstat"><i class="fa fa-star"></i><div><strong>5⭐</strong><span>تقييم</span></div></div>
+                <div class="hstat"><i class="fa fa-circle-check"></i><div><strong>100%</strong><span>رضا العملاء</span></div></div>
             </div>
         </div>
         <div class="hero-3d reveal-right">
@@ -305,6 +291,38 @@
             </div>
         </div>
     </section>
+
+    <!-- ========== FEATURES BAR ========== -->
+    <div class="features-bar reveal">
+        <div class="feat-item">
+            <div class="feat-icon"><i class="fa fa-pen-nib"></i></div>
+            <div class="feat-txt">
+                <h4>تصميم عصري</h4>
+                <p>تصاميم فريدة و متجاوبة تعكس هوية علامتك التجارية</p>
+            </div>
+        </div>
+        <div class="feat-item">
+            <div class="feat-icon"><i class="fa fa-code"></i></div>
+            <div class="feat-txt">
+                <h4>برمجة احترافية</h4>
+                <p>كود نظيف و سريع الأداء باستخدام أحدث التقنيات</p>
+            </div>
+        </div>
+        <div class="feat-item">
+            <div class="feat-icon"><i class="fa fa-robot"></i></div>
+            <div class="feat-txt">
+                <h4>رد آلي ذكي (AI)</h4>
+                <p>نرد على رسائل عملائك تلقائياً عبر Instagram و Messenger على مدار الساعة</p>
+            </div>
+        </div>
+        <div class="feat-item">
+            <div class="feat-icon"><i class="fa fa-headset"></i></div>
+            <div class="feat-txt">
+                <h4>دعم مستمر</h4>
+                <p>نحن معك في كل خطوة، دعم فني سريع و موثوق</p>
+            </div>
+        </div>
+    </div>
 
     <hr class="section-divider">
 

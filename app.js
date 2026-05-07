@@ -490,7 +490,6 @@ async function loadPublicData() {
 
         return `
         <div class="service-card ${s.is_featured ? 'featured' : ''} reveal" data-id="${s.id}" data-price="${s.price}" data-name="${s.name}" data-tilt>
-            <div class="code-particles"></div>
             <div class="svc-icon"><i class="fa ${iconClass}"></i></div>
             ${s.badge ? `<div class="svc-badge ${s.is_featured ? 'popular' : ''}">${s.badge}</div>` : ''}
             <h3>${s.name}</h3>
@@ -567,86 +566,6 @@ if (document.getElementById('services-grid')) {
   document.addEventListener('DOMContentLoaded', loadPublicData);
 }
 
-// ============================================================
-// خلفية Cyberpunk WebDev 3D
-// ============================================================
-function initCyberpunkBG() {
-  const layerBack = document.getElementById('layer-back');
-  const layerMid = document.getElementById('layer-mid');
-  const layerFront = document.getElementById('layer-front');
-  const floatingContainer = document.getElementById('cyber-floating');
-  
-  if (!layerBack) return;
 
-  const codeSnippets = [
-    '01001011', '11010010', '00110011', '10101010',
-    'function()', 'const dev = new', '=> { }', 'import * as',
-    'SELECT *', '<div class="wow">', 'await fetch()',
-    'return null;', 'console.log()', 'padding: 2rem;'
-  ];
-
-  const icons = ['</>', '{ }', '[ ]', '()', '#', ';'];
-
-  function createMatrixRain(container, count, speedMultiplier) {
-    for (let i = 0; i < count; i++) {
-      const col = document.createElement('div');
-      col.className = `matrix-col ${Math.random() > 0.5 ? 'green' : 'purple'}`;
-      col.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
-      
-      const left = Math.random() * 100;
-      const duration = (Math.random() * 20 + 10) * speedMultiplier;
-      const delay = Math.random() * -30;
-      const fontSize = Math.random() * 0.5 + 0.6; // 0.6 to 1.1 rem
-
-      col.style.left = `${left}%`;
-      col.style.animationDuration = `${duration}s`;
-      col.style.animationDelay = `${delay}s`;
-      col.style.fontSize = `${fontSize}rem`;
-      
-      container.appendChild(col);
-    }
-  }
-
-  function createFloatingIcons(count) {
-    for (let i = 0; i < count; i++) {
-      const el = document.createElement('div');
-      const isCode = Math.random() > 0.4;
-      el.className = `float-icon ${isCode ? 'code' : 'bracket'}`;
-      el.textContent = isCode ? codeSnippets[Math.floor(Math.random() * codeSnippets.length)] : icons[Math.floor(Math.random() * icons.length)];
-      
-      const startX = (Math.random() * 100) - 50 + 'vw';
-      const endX = (Math.random() * 100) - 50 + 'vw';
-      const startZ = (Math.random() * 800) - 400 + 'px';
-      const endZ = (Math.random() * 800) - 400 + 'px';
-      const duration = Math.random() * 30 + 20;
-      const delay = Math.random() * -40;
-
-      el.style.setProperty('--startX', startX);
-      el.style.setProperty('--endX', endX);
-      el.style.setProperty('--startZ', startZ);
-      el.style.setProperty('--endZ', endZ);
-      el.style.animationDuration = `${duration}s`;
-      el.style.animationDelay = `${delay}s`;
-
-      floatingContainer.appendChild(el);
-    }
-  }
-
-  const isMobile = window.innerWidth < 768;
-  createMatrixRain(layerBack, isMobile ? 10 : 25, 2);
-  createMatrixRain(layerMid, isMobile ? 8 : 15, 1.5);
-  createMatrixRain(layerFront, isMobile ? 5 : 10, 1);
-  createFloatingIcons(isMobile ? 10 : 25);
-
-  // تأثير الـ Parallax العام عند تحريك الماوس
-  document.addEventListener('mousemove', e => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 10; // max 5deg
-    const y = (e.clientY / window.innerHeight - 0.5) * -10;
-    const parallax = document.getElementById('cyber-parallax');
-    if (parallax) {
-      parallax.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', initCyberpunkBG);
+// تم إيقاف الخلفية المتحركة بناءً على طلب المستخدم
+// document.addEventListener('DOMContentLoaded', initCyberpunkBG);
